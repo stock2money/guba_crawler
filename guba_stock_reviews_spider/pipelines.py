@@ -5,7 +5,9 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import pymysql
-
+import sys
+sys.path.append("./news-emotion")
+from demo import Predictor, save_model
 
 class GubaStockReviewsSpiderPipeline(object):
     def __init__(self):
@@ -21,12 +23,21 @@ class GubaStockReviewsSpiderPipeline(object):
         # 通过cursor执行增删查改
         self.cursor = self.connect.cursor()
 
+        best_vector = "wordfreq"
+        best_model = 1  # linearLogistic
+        save_model(best_vector, best_model)
+        self.predictor = Predictor()
+        self.predictor.load_model()
+        self.predictor.set_mode(mode="wordfreq")
+
     def process_item(self, item, spider):
         if item["infoType"] == '1':
-            sql = "INSERT INTO comment(title, detail, time, href, code, author) VALUES(%s,%s,%s,%s,%s,%s)"
+            sql = "INSERT INTO comment(title, detail, time, href, code, author, emotion) VALUES(%s,%s,%s,%s,%s,%s,%s)"
             try:
-                self.cursor.execute(
-                    sql, (item['title'], item['detail'], item['time'], item['href'], item['code'], item['author']))
+                self.predictor.set_news(news=item["detail"])
+                self.predictor.trans_vec()
+                tag = str(self.predictor()[0])
+                self.cursor.execute(sql, (item['title'], item['detail'], item['time'], item['href'], item['code'], item['author'], tag))
                 self.cursor.connection.commit()
             except BaseException as e:
                 print(e)
