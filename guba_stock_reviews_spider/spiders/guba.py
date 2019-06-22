@@ -10,7 +10,7 @@ class GubaSpider(scrapy.Spider):
     base_url = 'http://guba.eastmoney.com/default,0_%d.html'
     root_url = 'http://guba.eastmoney.com'
     stocks = {}
-    pages = 400
+    pages = 1
 
     def __init__(self):
         info = pd.read_csv("data/stocks.csv", header=0, delimiter=",")
@@ -30,11 +30,11 @@ class GubaSpider(scrapy.Spider):
                 item["code"] = self.stocks[name]
             else:
                 item["infoType"] = '0'
-            
             url = self.root_url + each.xpath('./span/a[2]/@href').extract()[0]
             item["href"] = url
-            item["author"] = each.xpath('./cite[3]/a/text()').extract()[0]
+            item["author"] = each.xpath('./cite[3]/a/font/text()').extract()[0]
             item["title"] = each.xpath('./span/a[2]/text()').extract()[0]
+            print(item)
             request = scrapy.Request(url=item["href"], callback=self.parseHref)
             request.meta['item'] = item
             yield request
