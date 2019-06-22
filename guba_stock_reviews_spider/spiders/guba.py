@@ -10,7 +10,7 @@ class GubaSpider(scrapy.Spider):
     base_url = 'http://guba.eastmoney.com/default,0_%d.html'
     root_url = 'http://guba.eastmoney.com'
     stocks = {}
-    pages = 200
+    pages = 400
 
     def __init__(self):
         info = pd.read_csv("data/stocks.csv", header=0, delimiter=",")
@@ -55,15 +55,15 @@ class GubaSpider(scrapy.Spider):
             print(article)
             for p in article:
                 if len(p.xpath('./text()').extract()) > 0:
-                    detail += p.xpath('./text()').extract()[0]
+                    detail += p.xpath('./text()').extract()[0] + '&'
         elif len(response.xpath('//*[@id="zwconbody"]/div/div/p')) > 0:
             article = response.xpath('//*[@id="zwconbody"]/div/div/p')
             print(article)
             for p in article:
                 if len(p.xpath('./text()').extract()) > 0:
-                    detail += p.xpath('./text()').extract()[0]
+                    detail += p.xpath('./text()').extract()[0] + '&'
         else:
-            detail = response.xpath('//*[@id="zwconbody"]/div/text()').extract()[0]
+            detail = response.xpath('//*[@id="zwconbody"]/div/text()').extract()[0] + '&'
         item["detail"] = detail.strip()
         yield item
 

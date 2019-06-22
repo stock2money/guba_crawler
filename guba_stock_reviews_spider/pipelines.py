@@ -34,6 +34,8 @@ class GubaStockReviewsSpiderPipeline(object):
         if item["infoType"] == '1':
             sql = "INSERT INTO comment(title, detail, time, href, code, author, emotion) VALUES(%s,%s,%s,%s,%s,%s,%s)"
             try:
+                if item['detail'] == '' or item['detail'] == None:
+                    return item
                 self.predictor.set_news(news=item["detail"])
                 self.predictor.trans_vec()
                 tag = str(self.predictor()[0])
@@ -46,6 +48,8 @@ class GubaStockReviewsSpiderPipeline(object):
         else:
             sql = "INSERT INTO news(time, title, href, detail) VALUES(%s,%s,%s,%s)"
             try:
+                if item['detail'] == '' or item['detail'] == None:
+                    return item
                 self.cursor.execute(
                     sql, (item['time'], item['title'], item['href'], item['detail']))
                 self.cursor.connection.commit()
